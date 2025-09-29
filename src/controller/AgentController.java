@@ -10,8 +10,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
-//public class AgentController implements AgentsSERVICEinter {
-public class AgentController {
+public class AgentController implements AgentCONTROLLERinter {
 
     private AgentsSERVICE agentsService;
 
