@@ -1,20 +1,5 @@
-import java.math.BigDecimal;
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.time.LocalDate;
+import view.MainView;
 
-import controller.ResponsablesController;
-import dao.AgentDAO;
-import dao.DepartementDAO;
-import dao.PaiementDAO;
-import model.Agent;
-import model.Departement;
-import model.Paiement;
-import model.enums.TypeAgent;
-import model.enums.TypePaiement;
-import util.DatabaseConnection;
-import view.AgentConsoleView;
-import view.ResponsablesConsoleView;
 
 import static model.enums.TypeAgent.*;
 
@@ -88,12 +73,8 @@ public class Main {
 //        AgentDAO dao = new AgentDAO();
 //        Agent agent = dao.getAgentWithDepartement(4);
 
-        ResponsablesConsoleView view = new ResponsablesConsoleView();
-//        ResponsablesController controller = new ResponsablesController();
-
-        view.afficherMenuPrincipal(OUVRIER,1,1);
-//        view.afficherMenuPrincipal(RESPONSABLE_DEPARTEMENT,1,1);
-
+        MainView mainView = new MainView();
+        mainView.afficherMenuPrincipal();
 
 
 

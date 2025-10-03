@@ -1,26 +1,16 @@
 package services;
 
 import dao.AgentDAO;
-import dao.PaiementDAO;
 import model.Agent;
-import model.Paiement;
-import model.enums.TypePaiement;
+import model.enums.TypeAgent;
 import services.servicesInterfaces.AgentsSERVICEinter;
-
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.util.Comparator;
-import java.util.List;
-import java.util.stream.Collectors;
 
 public class AgentsSERVICE implements AgentsSERVICEinter {
 
-    private AgentDAO agentDAO;
-    private PaiementDAO paiementDAO;
+    private final AgentDAO agentDAO;
 
     public AgentsSERVICE() {
         this.agentDAO = new AgentDAO();
-        this.paiementDAO = new PaiementDAO();
     }
 
     @Override
@@ -34,78 +24,83 @@ public class AgentsSERVICE implements AgentsSERVICEinter {
     }
 
     @Override
-    public List<Paiement> getHistoriquePaiements(int idAgent) {
-        return paiementDAO.getPaiementsByAgent(idAgent);
-    }
+    public void ajouterAgent(String nom, String prenom, String email, String password,
+                             TypeAgent typeAgent, int idDepartement) throws Exception {
+        if (nom == null || nom.trim().isEmpty() || prenom == null || prenom.trim().isEmpty()) {
+            throw new IllegalArgumentException("Le nom et prénom ne peuvent pas être vides");
+        }
 
-    @Override
-    public List<Paiement> filterPaiementsByType(int idAgent, TypePaiement typePaiement) {
-        return paiementDAO.getPaiementsByAgentAndType(idAgent, typePaiement);
-    }
+        if (email == null || !email.contains("@")) {
+            throw new IllegalArgumentException("Email invalide");
+        }
 
-    @Override
-    public List<Paiement> filterPaiementsByMontant(int idAgent, BigDecimal montantMin, BigDecimal montantMax) {
-        List<Paiement> allPaiements = paiementDAO.getPaiementsByAgent(idAgent);
+        Agent agent = new Agent(nom, prenom, email, password, typeAgent, idDepartement);
 
-        return allPaiements.stream()
-                .filter(p -> {
-                    BigDecimal montant = BigDecimal.valueOf(p.getMontant());
-                    return montant.compareTo(montantMin) >= 0 && montant.compareTo(montantMax) <= 0;
-                })
-                .collect(Collectors.toList());
-    }
-
-    @Override
-    public List<Paiement> filterPaiementsByDate(int idAgent, LocalDate dateDebut, LocalDate dateFin) {
-        return paiementDAO.getPaiementsByAgentAndDateRange(idAgent, dateDebut, dateFin);
-    }
-
-    @Override
-    public List<Paiement> sortPaiementsByMontant(List<Paiement> paiements, boolean croissant) {
-        if (croissant) {
-            return paiements.stream()
-                    .sorted(Comparator.comparing(Paiement::getMontant))
-                    .collect(Collectors.toList());
-        } else {
-            return paiements.stream()
-                    .sorted(Comparator.comparing(Paiement::getMontant).reversed())
-                    .collect(Collectors.toList());
+        try {
+            agentDAO.addAgent(agent);
+            System.out.println("Agent ajouté avec succès : " + nom + " " + prenom);
+        } catch (Exception e) {
+            throw new Exception("Erreur lors de l'ajout de l'agent : " + e.getMessage());
         }
     }
 
     @Override
-    public List<Paiement> sortPaiementsByDate(List<Paiement> paiements, boolean croissant) {
-        if (croissant) {
-            return paiements.stream()
-                    .sorted(Comparator.comparing(Paiement::getDatePaiement))
-                    .collect(Collectors.toList());
-        } else {
-            return paiements.stream()
-                    .sorted(Comparator.comparing(Paiement::getDatePaiement).reversed())
-                    .collect(Collectors.toList());
+    public void modifierAgent(int idAgent, String nom, String prenom, String email,
+                              TypeAgent typeAgent, int idDepartement) throws Exception {
+        Agent agent = agentDAO.getAgentById(idAgent);
+        if (agent == null) {
+            throw new Exception("Agent non trouvé avec l'ID : " + idAgent);
+        }
+
+        if (nom != null && !nom.trim().isEmpty()) {
+            agent.setNom(nom);
+        }
+        if (prenom != null && !prenom.trim().isEmpty()) {
+            agent.setPrenom(prenom);
+        }
+        if (email != null && email.contains("@")) {
+            agent.setEmail(email);
+        }
+        if (typeAgent != null) {
+            agent.setTypeAgent(typeAgent);
+        }
+        if (idDepartement > 0) {
+            agent.setIdDepartement(idDepartement);
+        }
+
+        try {
+            agentDAO.updateAgent(agent);
+            System.out.println("Agent modifié avec succès");
+        } catch (Exception e) {
+            throw new Exception("Erreur lors de la modification de l'agent : " + e.getMessage());
         }
     }
 
     @Override
-    public BigDecimal calculerTotalPaiements(int idAgent) {
-        return paiementDAO.getTotalPaiementsByAgent(idAgent);
+    public void supprimerAgent(int idAgent) throws Exception {
+        try {
+            agentDAO.deleteAgent(idAgent);
+            System.out.println("Agent supprimé avec succès");
+        } catch (Exception e) {
+            throw new Exception("Erreur lors de la suppression de l'agent : " + e.getMessage());
+        }
     }
 
     @Override
-    public BigDecimal calculerTotalPaiementsByType(int idAgent, TypePaiement typePaiement) {
-        List<Paiement> paiements = paiementDAO.getPaiementsByAgentAndType(idAgent, typePaiement);
+    public void affecterAgentDepartement(int idAgent, int idDepartement) throws Exception {
+        Agent agent = agentDAO.getAgentById(idAgent);
+        if (agent == null) {
+            throw new Exception("Agent non trouvé avec l'ID : " + idAgent);
+        }
 
-        return paiements.stream()
-                .map(p -> BigDecimal.valueOf(p.getMontant()))
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        agent.setIdDepartement(idDepartement);
+
+        try {
+            agentDAO.updateAgent(agent);
+            System.out.println("Agent affecté au département avec succès");
+        } catch (Exception e) {
+            throw new Exception("Erreur lors de l'affectation : " + e.getMessage());
+        }
     }
 
-    @Override
-    public BigDecimal calculerTotalPaiementsByPeriode(int idAgent, LocalDate dateDebut, LocalDate dateFin) {
-        List<Paiement> paiements = paiementDAO.getPaiementsByAgentAndDateRange(idAgent, dateDebut, dateFin);
-
-        return paiements.stream()
-                .map(p -> BigDecimal.valueOf(p.getMontant()))
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-    }
 }

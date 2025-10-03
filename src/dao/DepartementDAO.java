@@ -108,15 +108,18 @@ public class DepartementDAO implements DepartementInter {
     }
 
     @Override
-    public List<String> getAllDepartements() throws  SQLException {
-        List<String> departements = new ArrayList<>();
+    public List<Departement> getAllDepartements() throws  SQLException {
+        List<Departement> departements = new ArrayList<>();
         String sql = "SELECT * FROM departement";
         try (Connection connection = dbConnection.getConnection();
              Statement stmt = connection.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
 
             while (rs.next()) {
-                departements.add(rs.getString("id_departement") + ": " + rs.getString("nom"));
+                Departement departement = new Departement();
+                departement.setIdDepartement(rs.getInt("id_departement"));
+                departement.setNom(rs.getString("nom"));
+                departements.add(departement);
             }
 
         } catch (SQLException e) {
