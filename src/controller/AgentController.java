@@ -97,4 +97,8 @@ public class AgentController implements AgentCONTROLLERinter {
             System.err.println("Erreur lors de l'affectation de l'agent : " + e.getMessage());
         }
     }
+
+    public Agent authentifierAgent(String email, String password) {
+        return agentsService.authenticateAgent(email, password);
+    }
 }

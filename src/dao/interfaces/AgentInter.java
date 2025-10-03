@@ -10,4 +10,5 @@ public interface AgentInter {
     public Agent getAgentById(int id);
     public List<Agent> getAllAgents();
     public Agent getAgentWithDepartement(int id);
+    public Agent authenticateAgent(String email, String password);
 }

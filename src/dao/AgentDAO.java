@@ -220,4 +220,35 @@ public class AgentDAO implements AgentInter {
         }
         return null;
     }
+
+
+    public Agent authenticateAgent(String email, String password) {
+        String sql = "SELECT * FROM agent WHERE email = ? AND password = ?";
+
+        try (Connection connection = dbConnection.getConnection();
+             PreparedStatement pstmt = connection.prepareStatement(sql)) {
+
+            pstmt.setString(1, email);
+            pstmt.setString(2, password);
+
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    Agent agent = new Agent();
+                    agent.setIdAgent(rs.getInt("id_agent"));
+                    agent.setNom(rs.getString("nom"));
+                    agent.setPrenom(rs.getString("prenom"));
+                    agent.setEmail(rs.getString("email"));
+                    agent.setPassword(rs.getString("password"));
+                    agent.setTypeAgent(TypeAgent.valueOf(rs.getString("type_agent")));
+                    agent.setIdDepartement(rs.getInt("id_departement"));
+                    return agent;
+                }
+            }
+
+        } catch (SQLException e) {
+            System.err.println("Error authenticating agent: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return null;
+    }
 }

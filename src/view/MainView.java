@@ -1,6 +1,11 @@
 package view;
 
 import java.util.Scanner;
+import controller.AgentController;
+import controller.DepartementController;
+import controller.PaiementController;
+import model.Agent;
+import model.enums.TypeAgent;
 
 public class MainView {
     private Scanner scanner;
@@ -8,11 +13,21 @@ public class MainView {
     private ResponsableView responsableView;
     private DirecteurView directeurView;
 
+    // Controllers instead of direct services
+    private AgentController agentController;
+    private DepartementController departementController;
+    private PaiementController paiementController;
+
     public MainView() {
         this.scanner = new Scanner(System.in);
         this.agentView = new AgentView();
         this.responsableView = new ResponsableView();
         this.directeurView = new DirecteurView();
+
+        // Initialize controllers
+        this.agentController = new AgentController();
+        this.departementController = new DepartementController();
+        this.paiementController = new PaiementController();
     }
 
     public void afficherMenuPrincipal() {
@@ -22,9 +37,7 @@ public class MainView {
             System.out.println("\n" + "=".repeat(50));
             System.out.println("   SYSTÈME DE GESTION DES PAIEMENTS");
             System.out.println("=".repeat(50));
-            System.out.println("1. Interface Agent");
-            System.out.println("2. Interface Responsable de Département");
-            System.out.println("3. Interface Directeur");
+            System.out.println("1. Se connecter");
             System.out.println("0. Quitter");
             System.out.println("=".repeat(50));
             System.out.print("Votre choix: ");
@@ -33,13 +46,7 @@ public class MainView {
 
             switch (choix) {
                 case 1:
-                    gererConnexionAgent();
-                    break;
-                case 2:
-                    gererConnexionResponsable();
-                    break;
-                case 3:
-                    gererConnexionDirecteur();
+                    gererConnexion();
                     break;
                 case 0:
                     System.out.println("Au revoir !");
@@ -51,29 +58,52 @@ public class MainView {
         }
     }
 
-    private void gererConnexionAgent() {
-        System.out.println("\n=== CONNEXION AGENT ===");
-        System.out.print("Entrez votre ID d'agent: ");
-        int idAgent = lireEntier();
+    private void gererConnexion() {
+        System.out.println("\n=== CONNEXION ===");
+        System.out.print("Entrez votre email: ");
+        String email = scanner.nextLine();
+        System.out.print("Entrez votre password: ");
+        String password = scanner.nextLine();
 
+        // Authentifier l'utilisateur via le controller
+        Agent agent = agentController.authentifierAgent(email, password);
 
-        agentView.afficherMenuAgent(idAgent);
+        if (agent != null) {
+            System.out.println("Connexion réussie ! Bienvenue " + agent.getPrenom() + " " + agent.getNom());
+
+            // Redirection automatique basée sur le rôle
+            redirectionAutomatique(agent);
+        } else {
+            System.out.println("Échec de la connexion. Nom ou password incorrect.");
+            System.out.println("Veuillez vérifier vos informations et réessayer.");
+        }
     }
 
-    private void gererConnexionResponsable() {
-        System.out.println("\n=== CONNEXION RESPONSABLE ===");
-        System.out.print("Entrez votre ID de responsable: ");
-        int idResponsable = lireEntier();
+    private void redirectionAutomatique(Agent agent) {
+        TypeAgent typeAgent = agent.getTypeAgent();
 
-        responsableView.afficherMenuResponsable(idResponsable);
-    }
+        switch (typeAgent) {
+            case OUVRIER:
+            case PERMANENT:
+            case STAGIAIRE:
+                System.out.println("Redirection vers l'interface Agent...");
+                agentView.afficherMenuAgent(agent.getIdAgent());
+                break;
 
-    private void gererConnexionDirecteur() {
-        System.out.println("\n=== CONNEXION DIRECTEUR ===");
-        System.out.print("Entrez votre ID de directeur: ");
-        int idDirecteur = lireEntier();
+            case RESPONSABLE_DEPARTEMENT:
+                System.out.println("Redirection vers l'interface Responsable de Département...");
+                responsableView.afficherMenuResponsable(agent.getIdAgent());
+                break;
 
-        directeurView.afficherMenuDirecteur(idDirecteur);
+            case DIRECTEUR:
+                System.out.println("Redirection vers l'interface Directeur...");
+                directeurView.afficherMenuDirecteur(agent.getIdAgent());
+                break;
+
+            default:
+                System.out.println("Type d'agent non reconnu. Redirection vers l'interface Agent par défaut...");
+                agentView.afficherMenuAgent(agent.getIdAgent());
+        }
     }
 
     private int lireEntier() {
@@ -90,4 +120,6 @@ public class MainView {
         MainView mainView = new MainView();
         mainView.afficherMenuPrincipal();
     }
+
+
 }

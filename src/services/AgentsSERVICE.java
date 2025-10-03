@@ -103,4 +103,18 @@ public class AgentsSERVICE implements AgentsSERVICEinter {
         }
     }
 
+    @Override
+    public Agent authenticateAgent(String email, String password) {
+        if (email == null || !email.contains("@")) {
+            System.out.println("Email invalide");
+            return null;
+        }
+        if (password == null || password.trim().isEmpty()) {
+            System.out.println("Le nom ne peut pas être vide");
+            return null;
+        }
+
+        return agentDAO.authenticateAgent(email, password);
+    }
+
 }
